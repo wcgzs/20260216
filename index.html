@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>安全事件管理平台</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>安全事件管理平台</h1>
+      <p>网络安全事件的增删改查与多维统计（含告警合并）</p>
+    </div>
+    <button id="addIncidentBtn" class="primary">+ 新建事件</button>
+  </header>
+
+  <main>
+    <section class="panel alarm-panel">
+      <div class="section-title-row">
+        <h2>告警管理</h2>
+        <div class="row-actions">
+          <button id="addAlarmBtn" class="secondary">+ 新建告警</button>
+          <button id="mergeAlarmsBtn" class="primary">合并选中告警为安全事件</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>选择</th>
+              <th>告警ID</th>
+              <th>告警名称</th>
+              <th>类型</th>
+              <th>等级</th>
+              <th>来源</th>
+              <th>资产</th>
+              <th>状态</th>
+              <th>发现时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="alarmTableBody"></tbody>
+        </table>
+      </div>
+      <p id="alarmEmptyHint" class="empty hidden">暂无告警数据。</p>
+    </section>
+
+    <section class="panel stats">
+      <h2>总体概览</h2>
+      <div class="cards" id="overviewCards"></div>
+    </section>
+
+    <section class="panel filters">
+      <h2>安全事件筛选与检索</h2>
+      <div class="filter-grid">
+        <label>关键词
+          <input id="searchInput" type="text" placeholder="标题 / 事件ID / 描述" />
+        </label>
+        <label>严重等级
+          <select id="severityFilter">
+            <option value="all">全部</option>
+            <option value="严重">严重</option>
+            <option value="高">高</option>
+            <option value="中">中</option>
+            <option value="低">低</option>
+          </select>
+        </label>
+        <label>状态
+          <select id="statusFilter">
+            <option value="all">全部</option>
+            <option value="待处理">待处理</option>
+            <option value="处理中">处理中</option>
+            <option value="已处置">已处置</option>
+            <option value="已关闭">已关闭</option>
+          </select>
+        </label>
+        <label>事件类型
+          <select id="typeFilter">
+            <option value="all">全部</option>
+            <option value="恶意软件">恶意软件</option>
+            <option value="钓鱼攻击">钓鱼攻击</option>
+            <option value="漏洞利用">漏洞利用</option>
+            <option value="DDoS">DDoS</option>
+            <option value="异常访问">异常访问</option>
+            <option value="数据泄露">数据泄露</option>
+          </select>
+        </label>
+        <label>负责人
+          <input id="ownerFilter" type="text" placeholder="负责人姓名" />
+        </label>
+        <button id="resetFiltersBtn" class="secondary">重置筛选</button>
+      </div>
+    </section>
+
+    <section class="panel table-panel">
+      <h2>安全事件列表</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>事件ID</th>
+              <th>标题</th>
+              <th>类型</th>
+              <th>等级</th>
+              <th>状态</th>
+              <th>来源</th>
+              <th>负责人</th>
+              <th>发现时间</th>
+              <th>关联告警数</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="incidentTableBody"></tbody>
+        </table>
+      </div>
+      <p id="emptyHint" class="empty hidden">暂无符合条件的安全事件。</p>
+    </section>
+
+    <section class="panel charts">
+      <h2>多维统计</h2>
+      <div class="chart-grid">
+        <div>
+          <h3>按严重等级统计</h3>
+          <div id="severityChart" class="bar-list"></div>
+        </div>
+        <div>
+          <h3>按状态统计</h3>
+          <div id="statusChart" class="bar-list"></div>
+        </div>
+        <div>
+          <h3>按事件类型统计</h3>
+          <div id="typeChart" class="bar-list"></div>
+        </div>
+        <div>
+          <h3>按来源统计</h3>
+          <div id="sourceChart" class="bar-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="incidentDialog">
+    <form id="incidentForm" method="dialog">
+      <h2 id="dialogTitle">新增事件</h2>
+      <input type="hidden" id="incidentId" />
+      <div class="form-grid">
+        <label>标题
+          <input id="title" name="title" required maxlength="80" />
+        </label>
+        <label>事件类型
+          <select id="type" name="type" required>
+            <option value="恶意软件">恶意软件</option>
+            <option value="钓鱼攻击">钓鱼攻击</option>
+            <option value="漏洞利用">漏洞利用</option>
+            <option value="DDoS">DDoS</option>
+            <option value="异常访问">异常访问</option>
+            <option value="数据泄露">数据泄露</option>
+          </select>
+        </label>
+        <label>严重等级
+          <select id="severity" name="severity" required>
+            <option value="严重">严重</option>
+            <option value="高">高</option>
+            <option value="中">中</option>
+            <option value="低">低</option>
+          </select>
+        </label>
+        <label>状态
+          <select id="status" name="status" required>
+            <option value="待处理">待处理</option>
+            <option value="处理中">处理中</option>
+            <option value="已处置">已处置</option>
+            <option value="已关闭">已关闭</option>
+          </select>
+        </label>
+        <label>来源
+          <input id="source" name="source" required placeholder="WAF / SIEM / EDR / SOC" />
+        </label>
+        <label>负责人
+          <input id="owner" name="owner" required placeholder="姓名" />
+        </label>
+        <label>发现时间
+          <input id="detectedAt" name="detectedAt" type="datetime-local" required />
+        </label>
+      </div>
+      <label>事件描述
+        <textarea id="description" name="description" rows="4" maxlength="500" required></textarea>
+      </label>
+      <p id="mergedAlarmHint" class="hint hidden"></p>
+      <div class="dialog-actions">
+        <button type="button" id="cancelBtn" class="secondary">取消</button>
+        <button type="submit" class="primary">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="alarmDialog">
+    <form id="alarmForm" method="dialog">
+      <h2 id="alarmDialogTitle">新增告警</h2>
+      <input type="hidden" id="alarmId" />
+      <div class="form-grid">
+        <label>告警名称
+          <input id="alarmTitle" required maxlength="80" />
+        </label>
+        <label>类型
+          <select id="alarmType" required>
+            <option value="恶意软件">恶意软件</option>
+            <option value="钓鱼攻击">钓鱼攻击</option>
+            <option value="漏洞利用">漏洞利用</option>
+            <option value="DDoS">DDoS</option>
+            <option value="异常访问">异常访问</option>
+            <option value="数据泄露">数据泄露</option>
+          </select>
+        </label>
+        <label>等级
+          <select id="alarmSeverity" required>
+            <option value="严重">严重</option>
+            <option value="高">高</option>
+            <option value="中">中</option>
+            <option value="低">低</option>
+          </select>
+        </label>
+        <label>来源
+          <input id="alarmSource" required placeholder="SIEM / WAF / EDR" />
+        </label>
+        <label>资产
+          <input id="alarmAsset" required placeholder="主机/IP/应用" />
+        </label>
+        <label>状态
+          <select id="alarmStatus" required>
+            <option value="未处理">未处理</option>
+            <option value="已确认">已确认</option>
+            <option value="已合并">已合并</option>
+          </select>
+        </label>
+        <label>发现时间
+          <input id="alarmDetectedAt" type="datetime-local" required />
+        </label>
+      </div>
+      <label>告警详情
+        <textarea id="alarmDescription" rows="4" maxlength="500" required></textarea>
+      </label>
+      <div class="dialog-actions">
+        <button type="button" id="alarmCancelBtn" class="secondary">取消</button>
+        <button type="submit" class="primary">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
